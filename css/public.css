@@ -1,0 +1,11 @@
+tfoot,
+tfoot>tr,
+tfoot>tr>td
+{
+    border:0 !important;
+}
+.table-bordered{
+    border-bottom: 0 !important;
+    border-left: 0 !important;
+    border-right: 0 !important;
+}
