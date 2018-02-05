@@ -9,3 +9,7 @@ tfoot>tr>td
     border-left: 0 !important;
     border-right: 0 !important;
 }
+.pagination-inline{
+    position: relative;
+    top: -30px;
+}

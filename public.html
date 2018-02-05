@@ -91,6 +91,8 @@
         var config = {};
         config.page_size = 5;
         config.key_id = "cur_id";
+        config.ajax_method = "GET";
+        config.ajax_url = "http://localhost:3000/User/Users";
         config.show_sn = true;
         config.columns = [];
         config.columns.push({ name: 'name', text: "姓名",sort: true });
@@ -100,8 +102,23 @@
         config.columns.push({ name: "xueli", text: "学历"});
         config.columns.push({ name: [work.GetIcon, "cur_row"], text: "操作"});
         var Test = new Pager("test_table", config);
-        Test.Clear();
+        Test.Search({id: '12321'});
 
+        var test = {};
+        test.data = [];
+        for(var i = 0 ; i < 5; i++){
+            var obj = {
+                name: 'xzc'+i,
+                age: i,
+                sex: i%2 ==0?'女':'男',
+                school: 'hlj',
+                xueli: 'benke'
+            };
+            test.data.push(obj);
+        }
+        test.page_index = 1;
+        test.page_count = 4;
+        test.total_count = 20;
     </script>
 </body>
 </html>

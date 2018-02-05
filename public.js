@@ -3,75 +3,54 @@
  */
 var CommonData = {}
 //数据访问
-var  request = function(obj){
+function Request(obj){
     this.method = obj.method ||'';
     this.url = obj.url ||'';
     this.call_back = obj.call_back || '';
     this.data = obj.data || null;
     this.async = obj.async || false;
-    this.createXHR = function(){
-        if(typeof XMLHttpRequest != "undefined"){
-            return new XMLHttpRequest();
-        }else if (typeof ActiveXObject !='undefined'){
-            if(typeof arguments.callee.activeXString !='string'){
-                var versions = ['MSXML2.XMLHttp.6.0','MSXML2.XMLHttp.3.0',"MSXML2.XMLHttp"],i,len;
-                for(var i = 0, len =versions.length; i< len; i++){
-                    try{
-                        new ActiveXObject(versions[i]);
-                        arguments.callee.activeXString = versions[i];
-                        break;
-                    }catch (ex){
-                        throw ex;
-                    }
-                }
-            }
-            return new ActiveXObject(arguments.callee.activeXString);
-        }else{
-            throw new Error("NO XHR object available");
-        }
-    }
 }
-request.prototype.send =  function(){
-    var xhr = this.createXHR();
-    xhr.onreadystatechange = function(e){
-        if(xhr.readyState == 4){
-            if((xhr.status >= 200 && xhr.status < 300 || xhr.status == 304) && this.call_back){
+Request.prototype.send =  function(){
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.onreadystatechange = function(e){
+        if(xmlHttp.readyState == 4){
+            if((xmlHttp.status >= 200 && xmlHttp.status < 300 || xmlHttp.status == 304) && this.call_back){
                 this.call_back(e.data);
             }else{
                 alert("出错了");
             }
         }
     };
-    xhr.open(this.method,this.url,this.async);
-    xhr.setRequestHeader("Content-Type", "applicant/x-www-form-urlencoded");
-    xhr.send(this.data);
+    xmlHttp.open(this.method,this.url,this.async);
+    xmlHttp.setRequestHeader("Content-Type", "applicant/x-www-form-urlencoded");
+    xmlHttp.send(this.data);
 }
 
-request.prototype.get = function(url,call_back,async){
-    var xhr = this.createXHR();
-    xhr.onreadystatechange = function(e){
-        if((xhr.status >= 200 && xhr.status < 300 || xhr.status == 304) && call_back ){
+Request.prototype.get = function(url,call_back,async){
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.onreadystatechange = function(e){
+        if((xmlHttp.status >= 200 && xmlHttp.status < 300 || xmlHttp.status == 304) && call_back ){
             call_back(e.data);
         }else{
             alert(e);
         }
     };
-    xhr.open('get',url,async || false);
-    xhr.setRequestHeader("Content-Type", "applicant/x-www-form-urlencoded");
-    xhr.send(null);
+    xmlHttp.open('get',url,async || false);
+    xmlHttp.setRequestHeader("Content-Type", "applicant/x-www-form-urlencoded");
+    xmlHttp.send(null);
 }
-request.prototype.post = function(url,data,call_back,async){
-    var xhr = this.createXHR();
-    xhr.onreadystatechange = function(e){
-        if((xhr.status >= 200 && xhr.status < 300 || xhr.status == 304) && call_back ){
+Request.prototype.post = function(url,data,call_back,async){
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.onreadystatechange = function(e){
+        if((xmlHttp.status >= 200 && xmlHttp.status < 300 || xmlHttp.status == 304) && call_back ){
             call_back(e.data);
         }else{
             alert(e);
         }
     };
-    xhr.open('post',url,async || false);
-    xhr.setRequestHeader("Content-Type", "applicant/x-www-form-urlencoded");
-    xhr.send(data);
+    xmlHttp.open('post',url,async || false);
+    xmlHttp.setRequestHeader("Content-Type", "applicant/x-www-form-urlencoded");
+    xmlHttp.send(data);
 }
 
 //序列号组件
@@ -188,6 +167,7 @@ function Pager(table_id, config){
     this.table_id = table_id; //表格id
     this.table = document.querySelector("#"+table_id); //表格
     this.page_size = config.page_size || -1; //每页个数
+    this.show_page = config.page_size > -1;
     this.page_index = 0; //第几页
     this.total_count = 0; //总数
     this.page_count = 0;  //总页数
@@ -251,19 +231,20 @@ Pager.prototype = {
         data["page_size"] = this.pager_size;
         data["page_index"] = this.page_index;
         this.params = data;
-        this.LoadData();
+        this.LoadData(true);
 
     },
     LoadData: function(is_first){
         "use strict";
         var _this = this;
+        console.log("sdf");
         var success = function(result){
             if(result){
                 var data = result.data;
                 var d_len = data ? data.length : 0;
                 if(is_first){
                     if(_this.show_page){
-                        if(_this.page_sizes != -1){
+                        if(_this.page_size != -1){
                             _this.total_count = result.total_count ? result.total_count : 0;
                         }else{
                             _this.total_count = d_len;
@@ -283,14 +264,30 @@ Pager.prototype = {
 
             }
         }
-        var obj = {method: this.ajax_method, url: this.ajax_url,call_back: success,data: _this.params};
-        var request = new request(obj);
-        request.send();
+        var test = {};
+        test.data = [];
+        for(var i = 0 ; i < 5; i++){
+            var obj = {
+                name: 'xzc'+i,
+                age: i,
+                sex: i%2 ==0?'女':'男',
+                school: 'hlj',
+                xueli: 'benke'
+            };
+            test.data.push(obj);
+        }
+        test.page_index = 1;
+        test.page_count = 6;
+        test.total_count = 30;
+        success(test);
+       /* var obj = {method: this.ajax_method, url: this.ajax_url,call_back: success,data: this.params};
+        var request = new Request(obj);
+        request.send();*/
     },
     SetBody: function(data){
         "use strict";
          var html = [];
-         if(!data &&  data.length ==0){
+         if(!data && data.length ==0){
             html.push("<tr><td colspan='"+this.columns.length+"'>无数据</td></tr>");
          }else{
              for(var i = 0 ; i < data.length; i++){
@@ -299,16 +296,14 @@ Pager.prototype = {
                  if(this.show_sn){
                      html.push("<td><input type='checkbox' name='check' value='"+cur_row.id+"'></td>");
                  }
-                 for(var j = 0; j < this.columns.length; i++){
+                 for(var j = 0; j < this.columns.length; j++){
                      var key = this.columns[j];
-                     html.push("<td>"+cur_row[key]+"</td>")
-
+                     html.push("<td>"+cur_row[key.name]+"</td>");
                  }
                  html.push("</tr>");
              }
          }
-
-         this.table.querySelectorAll("tbody")[0].innerHTML +=html.join('');
+         this.table.querySelectorAll("tbody")[0].innerHTML =html.join('');
     },
     Clear: function(){
         "use strict";
@@ -326,6 +321,7 @@ Pager.prototype = {
         }
         tfoot.show();
         this.AddNumList();
+        this.SetEnable();
     },
     AddNumList: function(){
         "use strict";
@@ -337,29 +333,59 @@ Pager.prototype = {
         html.push("<nav aria-label=\"Page navigation\">");
         html.push("<ul class='pagination'>");
         html.push("   <li>");
-        html.push("      <a href='#' aria-label=\"Previous\">");
+        html.push("      <a href='javascript:void(0);' aria-label=\"Previous\">");
         html.push("         <span aria-hidden='true'>&laquo;</span>");
         html.push("      </a>");
         html.push("   </li>");
-        if(_this.page_count > 0){
-            for(var i = 0; i < _this.page_count; i++){
-                html.push("<li><a href='javascript:void(0)'><span>"+i+"</span></a></li>");
+        html.push("   <li>");
+        html.push("      <a href='javascript:void(0);'>");
+        html.push("         <span aria-hidden='true'>&lt;</span>");
+        html.push("      </a>")
+        html.push("   </li>");
+        if(_this.page_count > 5){
+            html.push("<li><a href='javascript:void(0)' class='hide'>...</a></li>");
+        }
+        for(var i = 1; i <= Math.min(_this.page_count,5); i++){
+            html.push("<li><a href='javascript:void(0)'>"+i+"</a></li>");
+        }
+        if(_this.page_count > 5){
+            html.push("<li><a href='javascript:void(0)' class='p-next'>...</a></li>");
+        }
+ /*       if(_this.page_count >1){
+            if(_this.page_index < 3 || _this.page_count  <6){
+                for(var i = 0; i < _this.page_index; i++){
+                    html.push("<li><a href='javascript:void(0)'><span>"+i+1+"</span></a></li>");
+                }
+            }else if(_this.page_index > 3 && _this.page_count > 5 && _this.page_index +2 < _this.page_count){
+                for(var i = _this.page_index-2; i < _this.page_index +3; i++){
+                    html.push("<li><a href='javascript:void(0)'><span>"+i+"</span></a></li>");
+                }
+            }else if(_this.page_index +2 > _this.page_count){
+                for(var i = _this.page_count -4; i < _this.page_count; i++){
+                    html.push("<li><a href='javascript:void(0)'><span>"+i+"</span></a></li>");
+                }
             }
         }else{
             html.push("<li><a href='javascript:void(0)'><span>1</span></a></li>");
-        }
-
+        }*/
         html.push("   <li>");
-        html.push("      <a href='#' aria-label='Next'>");
+        html.push("     <a href='javascript:void(0);' aria-label='Next'>");
+        html.push("        <span aria-hidden='true'>&gt;</span>");
+        html.push("     </a>")
+        html.push("   <li>");
+        html.push("      <a href='javascript:void(0);' aria-label='Next'>");
         html.push("        <span aria-hidden='true'>&raquo;</span>");
         html.push("      </a>");
         html.push("   </li>");
         html.push("</ul></nav>");
         html.push("</li>");
-        html.push("<li>");
-        html.push("<span>每页:</span>");
+        html.push("<li class='pagination-inline'>");
+        html.push("<span>总数:"+ _this.total_count +"</span>");
         html.push("</li>");
-        html.push("<li>");
+        html.push("<li class='pagination-inline'>");
+        html.push("<span>每页显示:</span>");
+        html.push("</li>");
+        html.push("<li class='pagination-inline'>");
         html.push("<select id='select_size' class='form-control'>");
         html.push("<option value='5' "+( _this.page_size == 5 ? 'selected' : '')+">5</option>");
         html.push("<option value='5'"+(_this.page_size == 10 ? 'selected' : '')+">10</option>");
@@ -368,7 +394,7 @@ Pager.prototype = {
         html.push("<option value='-1'"+(_this.page_size == -1 ? 'selected' : '')+">All</option>");
         html.push("</select>");
         html.push("</li>");
-        html.push("<li><span>共"+(_this.page_count+1)+"页</span></li>");
+        html.push("<li class='pagination-inline'><span>"+(_this.page_index+1)+"/"+(_this.page_count+1)+"</span></li>");
         html.push("</ul>");
         html.push("</td>");
         html.push("</tr>");
@@ -378,19 +404,43 @@ Pager.prototype = {
         var a_class = this.table.querySelectorAll("ul.pagination>li>a");
         for(var i =0; i < a_class.length; i++){
             a_class[i].addEventListener("click",function(e){
-                var cur_a = $(this);
-                if(cur_a.parentNode().hasAttribute("disabled")){
+                var cur_a = this;
+                if(cur_a.parentNode.hasAttribute("disabled")){
                     return;
                 }
-                if(cur_a.parentNode().hasAttribute("active")){
+                if(cur_a.parentNode.hasAttribute("active")){
+                    _this.LoadData();
+                    return;
+                }
+                var text = cur_a.innerText;
+                console.log(text);
+                console.log(cur_a.innerHTML);
+                if(text == "..."){
+                    var num = cur_a.parentNode.index == 2 ? cur_a.parentNode.nextSibling.firstChild.innerText : cur_a.parentNode.previousSibling.firstChild.innerText;
+                    this.page_size = num -1;
+                }
+                if(text == "<"){
 
                 }
+                if(text == ">"){
+
+                }
+                if(text == "»"){
+
+                }
+                if(text == "«"){
+
+                }
+
             },false);
         }
 
     },
     ResetNum: function(){
         "use strict";
+
+    },
+    SetEnable: function(){
 
     },
     Sort: function(th){
