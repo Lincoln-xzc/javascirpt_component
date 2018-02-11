@@ -168,7 +168,7 @@ function Pager(table_id, config){
     this.table = document.querySelector("#"+table_id); //表格
     this.page_size = config.page_size || -1; //每页个数
     this.show_page = config.page_size > -1;
-    this.page_index = 0; //第几页
+    this.page_index = 1; //第几页
     this.total_count = 0; //总数
     this.page_count = 0;  //总页数
     this.ajax_url = config.ajax_url;  //请求地址
@@ -237,7 +237,6 @@ Pager.prototype = {
     LoadData: function(is_first){
         "use strict";
         var _this = this;
-        console.log("sdf");
         var success = function(result){
             if(result){
                 var data = result.data;
@@ -258,6 +257,7 @@ Pager.prototype = {
                     _this.ResetNum();
                 }
                 _this.SetBody(data);
+                _this.SetEnable();
                 if(_this.call_back){
                     _this.call_back(data);
                 }
@@ -276,7 +276,7 @@ Pager.prototype = {
             };
             test.data.push(obj);
         }
-        test.page_index = 1;
+        test.page_index = _this.page_index;
         test.page_count = 6;
         test.total_count = 30;
         success(test);
@@ -413,25 +413,21 @@ Pager.prototype = {
                     return;
                 }
                 var text = cur_a.innerText;
-                console.log(text);
-                console.log(cur_a.innerHTML);
-                if(text == "..."){
+                if(text == "<" || text==">"){
                     var num = cur_a.parentNode.index == 2 ? cur_a.parentNode.nextSibling.firstChild.innerText : cur_a.parentNode.previousSibling.firstChild.innerText;
-                    this.page_size = num -1;
+                    _this.page_index = num -1;
                 }
-                if(text == "<"){
-
-                }
-                if(text == ">"){
+                if(text == "..."){
 
                 }
                 if(text == "»"){
-
+                    _this.page_index = 0;
                 }
                 if(text == "«"){
-
+                    _this.page_index = this.page_count;
                 }
-
+                _this.page_index = text;
+                _this.LoadData(false);
             },false);
         }
 
@@ -441,6 +437,45 @@ Pager.prototype = {
 
     },
     SetEnable: function(){
+        var p_list = this.table.querySelectorAll(".pagination li");
+        for(var i = 0; i < p_list.length; i++){
+            var text = p_list[i].querySelectorAll("a")[0].innerText;
+            if(parseInt(text) == (this.page_index)){
+                p_list[i].setAttribute("class","active");
+            }else{
+                if(hasClass(p_list[i],"active")){
+                    var classVal = p_list[i].getAttribute("class").replace("active","");
+                    p_list[i].setAttribute("class",classVal);
+                }
+
+            }
+        }
+        if(this.page_index == 0){
+            p_list[0].setAttribute("class", "disabled");
+            p_list[1].setAttribute("class", 'disabled');
+        }else{
+            if(hasClass(p_list[0],"disabled")){
+                var classVal = p_list[0].getAttribute("class").replace("disabled","");
+                p_list[0].setAttribute("class", classVal);
+            }
+            if(hasClass(p_list[1],"disabled")){
+                var classVal = p_list[1].getAttribute("class").replace("disabled","");
+                p_list[1].setAttribute("class", classVal);
+            }
+        }
+        if(this.page_index == this.page_count){
+            p_list[p_list.length-1].setAttribute("class", "disabled");
+            p_list[p_list.length -2].setAttribute("class", "disabled");
+        }else{
+            if(hasClass(p_list[p_list.length-1],"disabled")){
+                var classVal = p_list[p_list.length-1].getAttribute("class").replace("disabled","");
+                p_list[p_list.length-1].setAttribute("class", classVal);
+            }
+            if(hasClass(p_list[p_list.length -2], "disabled")){
+                var classVal = p_list[p_list.length -2].getAttribute("class").replace("disabled","");
+                p_list[p_list.length -2].setAttribute("class", classVal);
+            }
+        }
 
     },
     Sort: function(th){
@@ -488,6 +523,22 @@ Pager.prototype = {
         html.push("<tfoot></tfoot>");
         return (html.join(""));
     }
-
 }
-
+var hasClass = (function(){
+    var div = document.createElement("div");
+    if("classList" in div && typeof div.classList.contains === "function"){
+        return function(elem, className){
+            return elem.classList.contains(className);
+        };
+    }else{
+        return function(elem, className){
+            var classes = elem.className.split(/\s+/);
+            for(var i = 0; i < classes.length; i++){
+                if(classes[i] === className){
+                    return true;
+                }
+            }
+            return false;
+        };
+    }
+})();
